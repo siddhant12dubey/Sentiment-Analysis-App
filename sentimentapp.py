@@ -70,4 +70,4 @@ if st.button("Analyze"):
 
 # Optional to suppress deprecation warning
 if __name__ == "__main__":
-    st.set_option('deprecation.showfileUploaderEncoding', False)
+   # st.set_option('deprecation.showfileUploaderEncoding', False)
