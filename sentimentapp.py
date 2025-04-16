@@ -10,17 +10,17 @@ from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import accuracy_score
 
-# Download NLTK stopwords (only once)
+# Download NLTK stopwords
 nltk.download('stopwords')
 
 # Function to clean text
 def clean_text(text):
     text = text.lower()
-    text = re.sub(r'http\S+|www\S+|https\S+', '', text)
-    text = re.sub(r'\@\w+|\#','', text)
-    text = re.sub(r'[\d]', '', text)
+    text = re.sub(r"http\S+|www\S+|https\S+", '', text)
+    text = re.sub(r"\@\w+|\#\w+", '', text)
+    text = re.sub(r"[0-9]", '', text)
     text = text.translate(str.maketrans('', '', string.punctuation))
     text = text.strip()
     tokens = text.split()
@@ -34,7 +34,11 @@ def load_data():
     df = pd.read_csv(url, encoding='latin-1')
     df = df.rename(columns={"label": "target", "tweet": "text"})
     df = df[['text', 'target']]
-    df['target'] = df['target'].replace({4: 1})
+
+    # Keep only 0 (negative) and 4 (positive)
+    df = df[df['target'].isin([0, 4])]
+    df['target'] = df['target'].apply(lambda x: 1 if x == 4 else 0)
+
     df['clean_text'] = df['text'].apply(clean_text)
     return df
 
@@ -55,20 +59,18 @@ def train_model(data):
 data = load_data()
 model, vectorizer, accuracy = train_model(data)
 
-# Streamlit Web App
-st.title("Sentiment Analysis of Social Media Posts")
-st.write("Enter a sentence below to check its sentiment.")
-st.write(f"Model Accuracy: **{accuracy:.2f}**")
+# Streamlit App UI
+st.set_page_config(page_title="Sentiment Analysis", layout="centered")
+st.title("📊 Sentiment Analysis of Social Media Posts")
+st.markdown("Enter any post or tweet below to predict its sentiment.")
 
-user_input = st.text_input("Type your social media post here")
+st.write(f"🧠 Model Accuracy: **{accuracy:.2f}**")
+
+user_input = st.text_input("✍️ Type your social media post here")
 if st.button("Analyze"):
     cleaned = clean_text(user_input)
     vectorized = vectorizer.transform([cleaned]).toarray()
     prediction = model.predict(vectorized)[0]
-    sentiment = "Positive 😊" if prediction == 1 else "Negative 😞"
-    st.write(f"Predicted Sentiment: **{sentiment}**")
+    sentiment = "✅ Positive 😊" if prediction == 1 else "❌ Negative 😞"
+    st.success(f"Predicted Sentiment: **{sentiment}**")
 
-# Optional to suppress deprecation warning
-if __name__ == "__main__":
-    pass  # Placeholder since there's no actual code here
-   # st.set_option('deprecation.showfileUploaderEncoding', False)
