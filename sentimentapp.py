@@ -1,3 +1,5 @@
+# Sentiment Analysis of Social Media Posts Using AI/ML
+
 import pandas as pd
 import numpy as np
 import re
@@ -8,7 +10,7 @@ from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import accuracy_score
 
 # Download NLTK stopwords
 nltk.download('stopwords')
@@ -25,10 +27,11 @@ def clean_text(text):
     tokens = [word for word in tokens if word not in stopwords.words('english')]
     return ' '.join(tokens)
 
-# Load dataset (local CSV file)
+# Load dataset (Twitter Sentiment140 sample)
 @st.cache_data
 def load_data():
-    df = pd.read_csv('sentiment_data.csv', encoding='latin-1')
+    url = 'https://raw.githubusercontent.com/dD2405/Twitter_Sentiment_Analysis/master/train.csv'
+    df = pd.read_csv(url, encoding='latin-1')
     df = df.rename(columns={"label": "target", "tweet": "text"})
     df = df[['text', 'target']]
 
@@ -49,13 +52,6 @@ def train_model(data):
     model = LogisticRegression()
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
-    
-    # Print evaluation metrics
-    print("Confusion Matrix:")
-    print(confusion_matrix(y_test, y_pred))
-    print("Classification Report:")
-    print(classification_report(y_test, y_pred))
-    
     acc = accuracy_score(y_test, y_pred)
     return model, vectorizer, acc
 
@@ -73,28 +69,8 @@ st.write(f"🧠 Model Accuracy: **{accuracy:.2f}**")
 user_input = st.text_input("✍️ Type your social media post here")
 if st.button("Analyze"):
     cleaned = clean_text(user_input)
-    st.write(f"Cleaned Text: {cleaned}")  # Log cleaned text for debugging
-
-    # Load dataset (local CSV file)
-@st.cache_data
-def load_data():
-    # Update the path to your dataset as needed
-    try:
-        df = pd.read_csv('sentiment_data.csv', encoding='latin-1')
-    except FileNotFoundError:
-        st.error("The dataset file 'sentiment_data.csv' was not found. Please check the file path.")
-        return None  # Return None or handle the error as needed
-
-    df = df.rename(columns={"label": "target", "tweet": "text"})
-    df = df[['text', 'target']]
-
-    # Keep only 0 (negative) and 4 (positive)
-    df = df[df['target'].isin([0, 4])]
-    df['target'] = df['target'].apply(lambda x: 1 if x == 4 else 0)
-
-    df['clean_text'] = df['text'].apply(clean_text)
-    return df
     vectorized = vectorizer.transform([cleaned]).toarray()
     prediction = model.predict(vectorized)[0]
     sentiment = "✅ Positive 😊" if prediction == 1 else "❌ Negative 😞"
     st.success(f"Predicted Sentiment: **{sentiment}**")
+
