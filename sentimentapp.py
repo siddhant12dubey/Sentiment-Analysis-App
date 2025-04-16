@@ -74,4 +74,7 @@ user_input = st.text_input("✍️ Type your social media post here")
 if st.button("Analyze"):
     cleaned = clean_text(user_input)
     st.write(f"Cleaned Text: {cleaned}")  # Log cleaned text for debugging
-    vectorized = vectorizer.transform([
+    vectorized = vectorizer.transform([cleaned]).toarray()
+    prediction = model.predict(vectorized)[0]
+    sentiment = "✅ Positive 😊" if prediction == 1 else "❌ Negative 😞"
+    st.success(f"Predicted Sentiment: **{sentiment}**")
