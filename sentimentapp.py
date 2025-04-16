@@ -1,5 +1,3 @@
-# Sentiment Analysis of Social Media Posts Using AI/ML
-
 import pandas as pd
 import numpy as np
 import re
@@ -27,11 +25,11 @@ def clean_text(text):
     tokens = [word for word in tokens if word not in stopwords.words('english')]
     return ' '.join(tokens)
 
-# Load dataset (Twitter Sentiment140 sample)
+# Load dataset (local CSV file)
 @st.cache_data
 def load_data():
-    url = 'https://raw.githubusercontent.com/dD2405/Twitter_Sentiment_Analysis/master/train.csv'
-    df = pd.read_csv(url, encoding='latin-1')
+    # Replace 'path_to_your_local_file.csv' with the actual path to your dataset
+    df = pd.read_csv('sentiment_data.csv', encoding='latin-1')
     df = df.rename(columns={"label": "target", "tweet": "text"})
     df = df[['text', 'target']]
 
@@ -73,4 +71,3 @@ if st.button("Analyze"):
     prediction = model.predict(vectorized)[0]
     sentiment = "✅ Positive 😊" if prediction == 1 else "❌ Negative 😞"
     st.success(f"Predicted Sentiment: **{sentiment}**")
-
