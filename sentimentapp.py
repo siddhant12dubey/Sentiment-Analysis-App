@@ -8,7 +8,7 @@ from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 # Download NLTK stopwords
 nltk.download('stopwords')
@@ -28,7 +28,6 @@ def clean_text(text):
 # Load dataset (local CSV file)
 @st.cache_data
 def load_data():
-    # Replace 'path_to_your_local_file.csv' with the actual path to your dataset
     df = pd.read_csv('sentiment_data.csv', encoding='latin-1')
     df = df.rename(columns={"label": "target", "tweet": "text"})
     df = df[['text', 'target']]
@@ -50,6 +49,13 @@ def train_model(data):
     model = LogisticRegression()
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
+    
+    # Print evaluation metrics
+    print("Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred))
+    print("Classification Report:")
+    print(classification_report(y_test, y_pred))
+    
     acc = accuracy_score(y_test, y_pred)
     return model, vectorizer, acc
 
@@ -67,7 +73,5 @@ st.write(f"🧠 Model Accuracy: **{accuracy:.2f}**")
 user_input = st.text_input("✍️ Type your social media post here")
 if st.button("Analyze"):
     cleaned = clean_text(user_input)
-    vectorized = vectorizer.transform([cleaned]).toarray()
-    prediction = model.predict(vectorized)[0]
-    sentiment = "✅ Positive 😊" if prediction == 1 else "❌ Negative 😞"
-    st.success(f"Predicted Sentiment: **{sentiment}**")
+    st.write(f"Cleaned Text: {cleaned}")  # Log cleaned text for debugging
+    vectorized = vectorizer.transform([
