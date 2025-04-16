@@ -74,6 +74,26 @@ user_input = st.text_input("✍️ Type your social media post here")
 if st.button("Analyze"):
     cleaned = clean_text(user_input)
     st.write(f"Cleaned Text: {cleaned}")  # Log cleaned text for debugging
+
+    # Load dataset (local CSV file)
+@st.cache_data
+def load_data():
+    # Update the path to your dataset as needed
+    try:
+        df = pd.read_csv('sentiment_data.csv', encoding='latin-1')
+    except FileNotFoundError:
+        st.error("The dataset file 'sentiment_data.csv' was not found. Please check the file path.")
+        return None  # Return None or handle the error as needed
+
+    df = df.rename(columns={"label": "target", "tweet": "text"})
+    df = df[['text', 'target']]
+
+    # Keep only 0 (negative) and 4 (positive)
+    df = df[df['target'].isin([0, 4])]
+    df['target'] = df['target'].apply(lambda x: 1 if x == 4 else 0)
+
+    df['clean_text'] = df['text'].apply(clean_text)
+    return df
     vectorized = vectorizer.transform([cleaned]).toarray()
     prediction = model.predict(vectorized)[0]
     sentiment = "✅ Positive 😊" if prediction == 1 else "❌ Negative 😞"
